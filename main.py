@@ -26,7 +26,7 @@ from langchain.chains.openai_functions import (
     create_structured_output_chain,
 )
 
-from elevenlabs import generate
+from elevenlabs import generate, voices
 from pydantic import BaseModel, Field
 from typing import Sequence
 
@@ -36,9 +36,6 @@ with st.sidebar:
     openai_api_key = st.text_input ("Open AI API key", type="password", key="OPENAI_API_KEY")
     eleven_labs_api_key = st.text_input ("Eleven labs API key", type="password", key="ELEVENLABS_API_KEY")
 
-
-# Define llm
-llm = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4", temperature=0.7)
 
 # Define Class
 class Section(BaseModel):
@@ -55,8 +52,6 @@ class Sections(BaseModel):
 # Open file systemprompt.txt
 with open("systemprompt.txt", "r") as f:
     system_template = f.read()
-    st.write(system_template)
-
 
 # Define prompt template
 system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
@@ -69,6 +64,8 @@ chat_prompt = ChatPromptTemplate.from_messages(messages=[system_message_prompt, 
 st.title("11Meditations")
 input = st.text_area("Descibe meditation")
 if st.button("Generate"):
+    # Define llm
+    llm = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4", temperature=0.7)
     llm_chain = create_structured_output_chain(Sections, llm=llm, prompt=chat_prompt)
     with st.spinner("Generating meditation..."):
         response = llm_chain.run({"text": input})
@@ -82,10 +79,11 @@ if st.button("Generate"):
         for Section in response.sections:
 
             audio = generate(
+                    api_key=eleven_labs_api_key,
                     text=Section.text,
-                    voice="Charlotte",
-                    model='eleven_multilingual_v1',
-                    api_key=eleven_labs_api_key)
+                    voice="XB0fDUnXU5powFXDhCwa",
+                    model='eleven_multilingual_v1'
+                    )
         
             audio_file = BytesIO(audio)
             audio_proc = AudioSegment.from_file(audio_file, format="mp3")
