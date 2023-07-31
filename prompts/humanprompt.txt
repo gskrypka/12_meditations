@@ -1,0 +1,5 @@
+Create for me great guided meditation session.
+Type: {type}
+Description: {desc}
+Duration: {duration}
+Goal: {goal}

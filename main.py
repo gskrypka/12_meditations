@@ -1,5 +1,5 @@
 import streamlit as st
-
+import json
 from pydub import AudioSegment
 from io import BytesIO
 
@@ -50,25 +50,49 @@ class Sections(BaseModel):
 
 
 # Open file systemprompt.txt
-with open("systemprompt.txt", "r") as f:
+with open("prompts/systemprompt.txt", "r") as f:
     system_template = f.read()
 
+with open("prompts/humanprompt.txt", "r") as f:
+    human_template = f.read()
 # Define prompt template
 system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
-human_template="{text}"
 human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
 chat_prompt = ChatPromptTemplate.from_messages(messages=[system_message_prompt, human_message_prompt])
 
+# Open file meditation_types.json
+with open('meditation_types.json', 'r') as f:
+    # Load JSON data from file
+    data = json.load(f)
 
-# Streamlit stucture 
-st.title("11Meditations")
-input = st.text_area("Descibe meditation")
+
+#Streamlit stucture 
+st.title("🧘 12Meditations")
+meditation_type = st.selectbox(
+    'Choose type of meditation',
+     (list(data.keys()))
+)
+goal = st.text_area("Descibre the goals of meditation meditation session")
+
+meditation_length = st.selectbox(
+    'Select length of meditation',
+     ('Short <5 min', 'medium 5-10 min', 'long >10 min')
+)
+
+background_sound_type = st.selectbox(
+    'Select background sounds',
+     ('forest', 'rain')
+)
+
 if st.button("Generate"):
     # Define llm
     llm = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4", temperature=0.7)
     llm_chain = create_structured_output_chain(Sections, llm=llm, prompt=chat_prompt)
     with st.spinner("Generating meditation..."):
-        response = llm_chain.run({"text": input})
+
+        # Get meditation value from data dictionary based on selected meditation type
+        desc = meditation_type + ": " + data.get(meditation_type, "No meditation type selected")
+        response = llm_chain.run({"type": meditation_type, "desc": desc, "goal": goal, "duration": meditation_length})
 
     for Section in response.sections:
         st.write(Section.text)
@@ -92,11 +116,13 @@ if st.button("Generate"):
             pause = AudioSegment.silent(duration=pause_timing)
             voice_over += pause
             
-            
-        background = AudioSegment.from_file("forest.mp3", format="mp3")
+        # Create background sound path which consist of "sounds" folder + background_sound_type + ".mp3"
+        background_sound_path = "sounds/" + background_sound_type + ".mp3"
+        # Create overlay
+        background = AudioSegment.from_file(background_sound_path, format="mp3")
         meditation = voice_over.overlay(background, loop=True)
-
-    
+        
+    # Creating audio file
     meditation_file = meditation.export("meditation.mp3", format="mp3")
     audio_file = open("meditation.mp3", "rb")
     audio_bytes = audio_file.read()
