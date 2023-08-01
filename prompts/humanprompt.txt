@@ -1,6 +1,7 @@
 Create for me great guided meditation session.
+Lenght of meditation: {duration}
 Type: {type}
 Description: {desc}
-Duration: {duration}
 Goal: {goal}
 Language (generate meditation in this language): {lang}
+Remember to put pauses that will give enought time to focus, think and meditate. 

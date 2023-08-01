@@ -33,6 +33,7 @@ from typing import Sequence
 from typing import Optional
 
 with st.sidebar:
+    st.subheader("API keys")
     openai_api_key = st.text_input ("Open AI API key", type="password", key="OPENAI_API_KEY")
     model = st.selectbox(
         'Choose Open AI Model (GPT-4 is recommended)',
@@ -40,6 +41,11 @@ with st.sidebar:
     )
     eleven_labs_api_key = st.text_input ("Eleven labs API key", type="password", key="ELEVENLABS_API_KEY")
 
+    st.subheader("Examples")
+    st.write("Example 1")
+    st.audio("meditations_examples/meditation_1.mp3", format="audio/mp3", start_time=0)
+    st.write("Example 2")
+    st.audio("meditations_examples/meditation_2.mp3", format="audio/mp3", start_time=0)
 
 # Define Class
 class Section(BaseModel):
@@ -52,6 +58,11 @@ class Sections(BaseModel):
     """Identifying all sections"""
     sections: Sequence[Section] = Field(..., description="Sections of meditation.")
 
+# Define voice types
+voice_list = {
+    "Charlotte": "XB0fDUnXU5powFXDhCwa",
+    "Thomas": "GBv7mTt0atIp3Br8iCZE"
+}
 
 # Open file systemprompt.txt
 with open("prompts/systemprompt.txt", "r") as f:
@@ -72,15 +83,16 @@ with open('meditation_types.json', 'r') as f:
 
 #Streamlit stucture 
 st.title("🧘 12Meditations")
+
+goal = st.text_area("Descibre the goals of meditation meditation session. Why do you want to meditate? What challenges face you? What do you want to achieve?")
 meditation_type = st.selectbox(
     'Choose type of meditation',
      (list(data.keys()))
 )
-goal = st.text_area("Descibre the goals of meditation meditation session")
 
 meditation_length = st.selectbox(
     'Select length of meditation',
-     ('Short <5 min', 'medium 5-10 min', 'long >10 min')
+     ('Short meditation. Up to 5 min', 'Medium lenght meditation. Around 5-10 minutes', 'Long meditation. More than 10 minutes.')
 )
 
 language= st.selectbox(
@@ -89,11 +101,17 @@ language= st.selectbox(
 )
 
 background_sound_type = st.selectbox(
-    'Select background sounds',
-     ('forest', 'rain')
-)
+            'Select background sounds',
+            ('forest', 'rain')
+        )
+st.audio("sounds/"+background_sound_type + ".mp3", format="audio/mp3", start_time=0)
 
-if st.button("Generate"):
+voice= st.selectbox(
+    'Select voice',
+     ('Charlotte', 'Thomas')
+)
+            
+if st.button("Generate", type="primary"):
     if eleven_labs_api_key is None or openai_api_key is None:
         st.error("Please enter API keys")
         st.stop()
@@ -101,7 +119,7 @@ if st.button("Generate"):
         # Define llm
         llm = ChatOpenAI(openai_api_key=openai_api_key, model=model, temperature=0.7)
         llm_chain = create_structured_output_chain(Sections, llm=llm, prompt=chat_prompt)
-        with st.spinner("Generating meditation..."):
+        with st.spinner("Generating meditation script 📝. It can take few minutes"):
 
             # Get meditation value from data dictionary based on selected meditation type
             desc = meditation_type + ": " + data.get(meditation_type, "No meditation type selected")
@@ -112,14 +130,15 @@ if st.button("Generate"):
                 st.write(Section.text)
                 st.write(Section.pause)
 
-        with st.spinner("Generating audio..."):
+        with st.spinner("Generating audio 🎤. It can take few minutes"):
             voice_over = AudioSegment.empty()
             for Section in response.sections:
 
+                ## Voice XB0fDUnXU5powFXDhCwa"
                 audio = generate(
                         api_key=eleven_labs_api_key,
                         text=Section.text,
-                        voice="XB0fDUnXU5powFXDhCwa",
+                        voice=voice_list[voice],
                         model='eleven_multilingual_v1'
                         )
             
@@ -142,6 +161,7 @@ if st.button("Generate"):
         audio_bytes = audio_file.read()
 
         st.audio(audio_bytes, format="audio/mp3", start_time=0)
+        st.download_button(label="Download audio", data=audio_bytes, file_name="meditation.mp3", mime="audio/mp3")
 
         
     
