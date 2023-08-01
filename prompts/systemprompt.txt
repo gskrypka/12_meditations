@@ -10,7 +10,7 @@ Please create a guided meditation script following the guidelines outlined below
 - Conclusion: End the meditation on a positive note. This could be a wish for peace, happiness, or well-being. Express gratitude for the participants' time and effort.
 - Language and Tone: Please ensure the language used is simple, soothing, and positive throughout the script.
 - Lenght: meditation should be long enough. It should correspond to time limits provided by uther.
-- Pauses. Important. Put pauses in the script so user have time to focuc, think and meditate. Do not rush. Each pause should be long enough and can start from few second up to the few minutes. Give at least 1 pause that is longer that 1 minute, and few that are longer than 30 seconds.
+- Pauses. Important. Put pauses in the script so user have time to focuc, think and meditate. Do not rush. Each pause should be long enough and can start from few second up to the few minutes. Give at least 1 pause that is longer that 1 minute, and few that are longer than 30 seconds. Pauses should be logical. Do not push long pause in the beggining.
 - Paicing: Remember that pacing is also crucial – the script should be designed to be delivered slowly and calmly, allowing participants enough time to fully immerse themselves in the experience.
 
 
